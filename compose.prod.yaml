@@ -1,0 +1,24 @@
+# 使用 GitHub Actions 构建好的镜像，不在服务器本地编译。
+services:
+  glacc:
+    image: ghcr.io/badggl/glacc-auto:0.3.0
+    container_name: glacc-auto
+    restart: unless-stopped
+    ports:
+      - "${GLACC_BIND:-127.0.0.1}:${GLACC_PORT:-8080}:8080"
+    environment:
+      GLACC_PASSWORD: ${GLACC_PASSWORD:?请在 .env 中设置 GLACC_PASSWORD}
+      GLACC_LISTEN: 0.0.0.0:8080
+      GLACC_DATA_DIR: /data
+      GLACC_WEB_DIR: /app/web/dist
+      GLACC_TLS_LIB: /app/lib/libtls-client.so
+      GLACC_COOKIE_SECURE: ${GLACC_COOKIE_SECURE:-true}
+      GLACC_TRUST_PROXY: ${GLACC_TRUST_PROXY:-true}
+      RUST_LOG: ${RUST_LOG:-info}
+    volumes:
+      - glacc-data:/data
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  glacc-data:
