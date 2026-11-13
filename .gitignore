@@ -1,0 +1,9 @@
+keys/
+.env
+.env.*
+!.env.example
+target/
+web/node_modules/
+web/dist/
+dist-app/
+._*

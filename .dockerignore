@@ -1,0 +1,19 @@
+# 构建产物
+target/
+web/node_modules/
+web/dist/
+dist-app/
+
+# 本地环境与密钥
+.env
+.env.*
+keys/
+docs/
+._*
+
+# 版本控制与编辑器
+.git/
+.gitignore
+.vscode/
+.idea/
+*.log
