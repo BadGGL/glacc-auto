@@ -12,7 +12,7 @@
 
   const version = $derived(appStore.settings.version || "0.3.0");
 
-  const REPO_URL = "https://github.com/miaocell/glacc-auto";
+  const REPO_URL = "https://github.com/BadGGL/glacc-auto";
 
   /** 交给后端用系统默认浏览器打开（WebView 里 target=_blank 无效）。 */
   function openRepo(): void {

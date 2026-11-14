@@ -1,7 +1,7 @@
 # 使用 GitHub Actions 构建好的镜像，不在服务器本地编译。
 services:
   glacc:
-    image: ghcr.io/badggl/glacc-auto:0.3.0
+    image: ghcr.io/badggl/glacc-auto:latest
     container_name: glacc-auto
     restart: unless-stopped
     ports:
