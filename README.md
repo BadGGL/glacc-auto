@@ -1,5 +1,11 @@
 # glacc-auto Linux 服务版
 
+> **本项目用途：梨加速器自动领取每日免费时长。**
+>
+> 这是一个给 **梨加速器（GeiLi）** 使用的自动领取工具：登录梨加速器账号后，自动拉取每日任务并逐个完成，从而领取免费时长。它把原 Windows 桌面版重构成 Linux 后台服务，带网页管理界面和定时任务，适合放在 NAS、小主机或云服务器上 7×24 运行。
+>
+> 本项目不是梨加速器官方客户端，仅用于个人学习、研究与合法的非商业场景；请遵守梨加速器的服务条款和当地法律法规。
+
 > **继承声明**
 >
 > 本项目是 [miaocell/glacc-auto](https://github.com/miaocell/glacc-auto) 的 Linux 重构衍生版本，继承自 **https://github.com/miaocell/glacc-auto**。
@@ -19,6 +25,15 @@
 - **Docker 交付**，镜像内自带 Linux TLS 指纹库
 
 > 仅限个人学习、研究与非商业使用。使用风险自负。
+
+## 简单使用说明
+
+1. **部署服务**：用下面的 Docker 教程启动容器，拿到访问地址和登录密码。
+2. **登录网页**：浏览器打开 `http://<服务器IP>:8080`，输入 `GLACC_PASSWORD`。
+3. **添加账号**：进入「账号」，输入梨加速器绑定的手机号，获取短信验证码并登录；最多可添加 3 个账号。
+4. **自动领取**：点「开始领取」，服务会拉取当天任务并逐个推送；也可以只保留定时任务，让它每天自动跑。
+5. **配置定时**：进入「定时」页，新建 cron 规则，例如 `0 8 * * *` 表示每天 08:00 自动领取。
+6. **查看结果**：首页查看可用时长、运行状态和 7 天记录；需要通知可在设置里填 Server酱 SendKey。
 
 ## 与上游的主要差异
 
@@ -46,21 +61,34 @@
 - 网页导出/导入凭据
 - 密码登录与访问保护
 
-## 快速开始（Docker Compose）
+## 使用本仓库 Docker 镜像部署教程
 
 ### 1. 准备
 
-- Linux x86_64
+- Linux x86_64（ARM64 需替换 `libtls-client.so`）
 - Docker Engine 24+ 与 Docker Compose v2
-- 已构建好的镜像：`ghcr.io/badggl/glacc-auto:0.3.0`（本仓库 GitHub Actions 构建）
-- 三个编译期常量：`GLACC_CLIENT_ID`、`GLACC_CLIENT_SECRET`、`GLACC_SIGN_KEY`。它们只影响构建，不是账号密码；本仓库的镜像已经内置，无需在服务器配置。
+- 本仓库 GitHub Actions 已构建好的镜像：`ghcr.io/badggl/glacc-auto:0.3.0`
+- 该镜像已内置三个编译期常量（`GLACC_CLIENT_ID`、`GLACC_CLIENT_SECRET`、`GLACC_SIGN_KEY`），**不需要在服务器上再配置**；它们只影响构建，不是你的梨加速器账号密码。
+- 该 GHCR 镜像包目前是 private。需要仓库 owner 授权你的 GitHub 账号读取，或使用有权限的账号登录。没有权限时看文末「方式二：Fork 后构建自己的镜像」。
 
-### 2. 启动
+### 2. 登录 GHCR 并拉取镜像
+
+```bash
+# 如果你的账号有该私有包读取权限
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <你的GitHub用户名> --password-stdin
+
+docker pull ghcr.io/badggl/glacc-auto:0.3.0
+docker logout ghcr.io   # 拉取完成后可以退出登录
+```
+
+### 3. 启动
 
 ```bash
 mkdir -p /opt/glacc-auto && cd /opt/glacc-auto
 
-# 把本仓库的 compose.prod.yaml 放到当前目录
+# 下载本仓库的生产 compose 文件
+curl -fsSL https://raw.githubusercontent.com/BadGGL/glacc-auto/main/compose.prod.yaml -o compose.prod.yaml
+
 # 创建 .env
 cat > .env <<'ENV'
 GLACC_PASSWORD=换成一个强密码
@@ -82,13 +110,24 @@ docker compose -f compose.prod.yaml up -d
 docker compose -f compose.prod.yaml logs glacc | grep -i password
 ```
 
-### 3. 常驻与重启
+### 4. 常驻与重启
 
 ```bash
 docker compose -f compose.prod.yaml ps
 docker compose -f compose.prod.yaml logs -f --tail=100
 docker compose -f compose.prod.yaml restart
 ```
+
+### 方式二：Fork 后构建自己的镜像
+
+如果你没有本仓库 GHCR 私有包的读取权限：
+
+1. Fork 本仓库到你的 GitHub 账号。
+2. 在仓库 `Settings → Secrets and variables → Actions` 里添加三个 Secrets：`GLACC_CLIENT_ID`、`GLACC_CLIENT_SECRET`、`GLACC_SIGN_KEY`。
+3. 打开 `Actions → build-image → Run workflow`，等待构建完成，镜像会推送到你自己的 GHCR。
+4. 把 `compose.prod.yaml` 里的 `image:` 改成你的镜像地址，再按上面的步骤启动。
+
+> 三个 key 只用于构建；不要把 `keys/`、`.env` 或真实账号密码提交到仓库。
 
 ## 配置项
 
